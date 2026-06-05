@@ -1,71 +1,62 @@
 const nodemailer = require("nodemailer");
+
 const sendEmail = async ({ name, email, message }) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
+    });
 
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+    // Verify SMTP connection
+    await transporter.verify();
+    console.log("✅ SMTP Connected");
 
-  const adminMailOptions = {
-    from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
-    to: process.env.EMAIL_USER,      
-    replyTo: email,                  
-    subject: "📩 New Portfolio Contact Message",
-    html: `
-      <div style="font-family:Arial;">
+    // Mail to Admin
+    const adminMailOptions = {
+      from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      replyTo: email,
+      subject: "📩 New Portfolio Contact Message",
+      html: `
         <h2>New Contact Query</h2>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
-        <hr />
-        <small>Received on ${new Date().toLocaleString()}</small>
-      </div>
-    `,
-  };
+        <p><strong>Message:</strong> ${message}</p>
+      `,
+    };
 
-const userMailOptions = {
-    from: `"Satwik | Portfolio" <${process.env.EMAIL_USER}>`,
-    to: email,                  
-    subject: "✅ We received your message",
-    html: `
-      <div style="max-width:600px;margin:auto;font-family:Arial,sans-serif;
-                  background:#f9f9f9;padding:20px;border-radius:8px;">
-        
-        <h2 style="color:#333;">Hi ${name}, 👋</h2>
+    // Auto Reply to User
+    const userMailOptions = {
+      from: `"Satwik Portfolio" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "✅ We received your message",
+      html: `
+        <h2>Hello ${name} 👋</h2>
+        <p>Thank you for contacting me.</p>
+        <p>Your message has been received successfully.</p>
+        <p>I will get back to you soon.</p>
+        <br/>
+        <p>Regards,</p>
+        <strong>Satwik</strong>
+      `,
+    };
 
-        <p>
-          Thank you for reaching out!  
-          We have successfully received your message.
-        </p>
+    await transporter.sendMail(adminMailOptions);
+    await transporter.sendMail(userMailOptions);
 
-        <p>
-          📌 I will 
-          review your query and get back to you shortly.
-        </p>
-
-        <p style="margin-top:20px;">
-          Best regards,<br />
-          <strong>Satwik</strong><br />
-          Portfolio Team
-        </p>
-
-        <hr style="margin:20px 0;" />
-
-        <p style="font-size:12px;color:#888;">
-          This is an automated response. Please do not reply to this email.
-        </p>
-      </div>
-    `,
-  };
-  // Send both emails
-  await transporter.sendMail(adminMailOptions);
-  await transporter.sendMail(userMailOptions);
+    console.log("✅ Emails sent successfully");
+  } catch (error) {
+    console.error("❌ Email Error:", error);
+    throw error;
+  }
 };
 
 module.exports = sendEmail;
