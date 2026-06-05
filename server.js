@@ -17,6 +17,13 @@ mongoose
   .catch((err) => {
     console.error("❌ MongoDB error:", err);
   });
+
+app.get("/test", (req, res) => {
+  res.json({
+    keyExists: !!process.env.BREVO_API_KEY,
+    prefix: process.env.BREVO_API_KEY?.substring(0, 8),
+  });
+});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
